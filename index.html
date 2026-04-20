@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title> NERO</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f1a;
+    --card: #13162a;
+    --card2: #1a1e35;
+    --accent1: #c9a96e;
+    --accent2: #7b9ccd;
+    --accent3: #a78bca;
+    --text: #e8e2d9;
+    --muted: #7a7f9a;
+    --border: rgba(201,169,110,0.15);
+    --glow: rgba(201,169,110,0.08);
+    --edit-bg: #0a0c18;
+    --edit-border: rgba(201,169,110,0.25);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Cairo', sans-serif;
+    min-height: 100vh;
+    padding: 40px 20px 80px;
+    background-image:
+      radial-gradient(ellipse at 20% 10%, rgba(123,156,205,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 90%, rgba(167,139,202,0.06) 0%, transparent 50%);
+  }
+
+  .stars { position: fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0; overflow:hidden; }
+  .star { position:absolute; width:2px; height:2px; background:white; border-radius:50%; opacity:0; animation: twinkle var(--d,4s) var(--delay,0s) infinite; }
+  @keyframes twinkle { 0%,100%{opacity:0} 50%{opacity:var(--op,0.4)} }
+
+  .container { max-width: 780px; margin: 0 auto; position: relative; z-index: 1; }
+
+  /* ======= EDIT MODE TOGGLE ======= */
+  .edit-toggle-bar {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    display: flex;
+    gap: 10px;
+    background: rgba(13,15,26,0.95);
+    border: 1px solid var(--edit-border);
+    border-radius: 50px;
+    padding: 8px 16px;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+
+  .toggle-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'Cairo', sans-serif;
+    font-size: 12px;
+    padding: 6px 16px;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .toggle-btn:hover { border-color: var(--accent1); color: var(--accent1); }
+  .toggle-btn.active { background: rgba(201,169,110,0.15); border-color: var(--accent1); color: var(--accent1); font-weight: 600; }
+  .toggle-btn.save-btn { background: rgba(123,156,205,0.15); border-color: var(--accent2); color: var(--accent2); }
+  .toggle-btn.save-btn:hover { background: rgba(123,156,205,0.25); }
+
+  /* ======= HEADER ======= */
+  .header { text-align: center; margin-bottom: 50px; animation: fadeDown 0.8s ease both; }
+  .header-label { font-size: 11px; letter-spacing: 4px; color: var(--accent1); text-transform: uppercase; margin-bottom: 12px; font-weight: 300; }
+  .header h1 { font-family: 'Amiri', serif; font-size: clamp(2rem, 5vw, 3.2rem); color: var(--text); line-height: 1.2; margin-bottom: 10px; }
+  .header h1 span { color: var(--accent1); }
+  .header-line { width: 60px; height: 1px; background: linear-gradient(90deg, transparent, var(--accent1), transparent); margin: 16px auto 0; }
+
+  /* Header editable inputs */
+  .header-label-input, .header-name-input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px dashed rgba(201,169,110,0.3);
+    color: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    letter-spacing: inherit;
+    text-align: center;
+    outline: none;
+    width: auto;
+    min-width: 80px;
+  }
+
+  /* ======= SECTION ======= */
+  .section { margin-bottom: 32px; animation: fadeUp 0.7s ease both; }
+  .section:nth-child(2){animation-delay:0.1s} .section:nth-child(3){animation-delay:0.2s}
+  .section:nth-child(4){animation-delay:0.3s} .section:nth-child(5){animation-delay:0.4s}
+  .section:nth-child(6){animation-delay:0.5s} .section:nth-child(7){animation-delay:0.6s}
+
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .section-icon { font-size: 18px; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 10px; background: var(--glow); border: 1px solid var(--border); flex-shrink: 0; cursor: default; }
+  .section-title { font-size: 13px; letter-spacing: 2px; color: var(--accent1); font-weight: 600; }
+  .section-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .divider { flex: 1; height: 1px; background: var(--border); }
+
+  /* ======= CARD / ROW ======= */
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .row { display: flex; align-items: center; padding: 13px 18px; gap: 16px; border-bottom: 1px solid rgba(255,255,255,0.04); transition: background 0.2s; }
+  .row:last-child { border-bottom: none; }
+  .row:hover { background: rgba(201,169,110,0.04); }
+  .time { font-size: 12px; color: var(--accent1); font-weight: 600; min-width: 60px; text-align: left; direction: ltr; opacity: 0.85; }
+  .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent1); flex-shrink: 0; opacity: 0.4; }
+  .activity { font-size: 14px; color: var(--text); font-weight: 400; flex: 1; }
+  .activity.highlight { color: var(--accent2); font-weight: 600; }
+  .tag { font-size: 10px; padding: 3px 9px; border-radius: 20px; font-weight: 600; letter-spacing: 0.5px; flex-shrink: 0; }
+  .tag-gold { background: rgba(201,169,110,0.12); color: var(--accent1); border: 1px solid rgba(201,169,110,0.2); }
+  .tag-blue { background: rgba(123,156,205,0.12); color: var(--accent2); border: 1px solid rgba(123,156,205,0.2); }
+  .tag-purple { background: rgba(167,139,202,0.12); color: var(--accent3); border: 1px solid rgba(167,139,202,0.2); }
+  .tag-green { background: rgba(100,200,150,0.12); color: #7dcca4; border: 1px solid rgba(100,200,150,0.2); }
+
+  /* ======= WEEKLY ======= */
+  .week-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+  .day-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; transition: transform 0.2s, border-color 0.2s; }
+  .day-card:hover { transform: translateY(-2px); border-color: rgba(201,169,110,0.3); }
+  .day-card.holiday { border-color: rgba(167,139,202,0.25); background: linear-gradient(135deg, var(--card), rgba(167,139,202,0.05)); }
+  .day-name { font-family: 'Amiri', serif; font-size: 16px; color: var(--accent1); margin-bottom: 8px; }
+  .day-card.holiday .day-name { color: var(--accent3); }
+  .day-items { list-style: none; }
+  .day-items li { font-size: 12px; color: var(--muted); padding: 3px 0; display: flex; align-items: center; gap: 7px; }
+  .day-items li::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: var(--accent1); opacity: 0.5; flex-shrink: 0; }
+  .day-card.holiday .day-items li { color: var(--accent3); opacity: 0.8; }
+  .day-card.holiday .day-items li::before { background: var(--accent3); }
+
+  /* ======= FOOTER ======= */
+  .footer { text-align: center; margin-top: 50px; padding-top: 30px; border-top: 1px solid var(--border); animation: fadeUp 0.7s ease 0.7s both; }
+  .footer p { font-family: 'Amiri', serif; font-size: 15px; color: var(--muted); font-style: italic; }
+  .footer span { color: var(--accent1); }
+
+  @keyframes fadeDown { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+
+  /* ======= EDIT MODE STYLES ======= */
+  body.edit-mode .editable {
+    background: rgba(201,169,110,0.05);
+    border-radius: 6px;
+    outline: 1px dashed rgba(201,169,110,0.25);
+    cursor: text;
+    padding: 1px 4px;
+    min-width: 30px;
+    display: inline-block;
+  }
+
+  body.edit-mode .editable:focus {
+    outline: 1px solid rgba(201,169,110,0.6);
+    background: rgba(201,169,110,0.08);
+  }
+
+  body.edit-mode .delete-btn {
+    display: flex !important;
+  }
+
+  body.edit-mode .add-row-btn,
+  body.edit-mode .add-section-btn,
+  body.edit-mode .add-day-btn,
+  body.edit-mode .add-item-btn {
+    display: flex !important;
+  }
+
+  body.edit-mode .section-icon {
+    cursor: text;
+  }
+
+  .delete-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(220,80,80,0.1);
+    border: 1px solid rgba(220,80,80,0.2);
+    color: rgba(220,80,80,0.7);
+    font-size: 13px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    line-height: 1;
+  }
+  .delete-btn:hover { background: rgba(220,80,80,0.2); color: #ff6b6b; border-color: rgba(220,80,80,0.4); }
+
+  .add-row-btn, .add-section-btn, .add-day-btn, .add-item-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px;
+    background: transparent;
+    border: 1px dashed rgba(201,169,110,0.2);
+    border-radius: 10px;
+    color: rgba(201,169,110,0.4);
+    font-family: 'Cairo', sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: all 0.2s;
+  }
+  .add-row-btn:hover, .add-section-btn:hover, .add-day-btn:hover, .add-item-btn:hover {
+    border-color: rgba(201,169,110,0.5);
+    color: var(--accent1);
+    background: rgba(201,169,110,0.04);
+  }
+
+  /* Tag selector */
+  .tag-select {
+    display: none;
+    font-family: 'Cairo', sans-serif;
+    font-size: 10px;
+    background: var(--card2);
+    border: 1px solid var(--edit-border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 3px 6px;
+    cursor: pointer;
+    outline: none;
+  }
+
+  body.edit-mode .tag-select { display: inline-block; }
+  body.edit-mode .tag { display: none !important; }
+  body.edit-mode .tag-real { display: none; }
+
+  /* Highlight toggle */
+  .highlight-toggle {
+    display: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 1px solid rgba(123,156,205,0.3);
+    background: rgba(123,156,205,0.05);
+    cursor: pointer;
+    font-size: 10px;
+    color: var(--accent2);
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    title: "تمييز";
+  }
+  .highlight-toggle:hover { background: rgba(123,156,205,0.15); }
+  body.edit-mode .highlight-toggle { display: flex; }
+
+  /* Holiday toggle for day cards */
+  .holiday-toggle {
+    display: none;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: rgba(167,139,202,0.1);
+    border: 1px dashed rgba(167,139,202,0.3);
+    color: var(--accent3);
+    cursor: pointer;
+    margin-bottom: 8px;
+    font-family: 'Cairo', sans-serif;
+    transition: all 0.2s;
+  }
+  body.edit-mode .holiday-toggle { display: inline-block; }
+
+  /* Section drag handle */
+  .drag-handle {
+    display: none;
+    color: var(--muted);
+    font-size: 14px;
+    cursor: grab;
+    padding: 0 4px;
+    opacity: 0.4;
+  }
+  body.edit-mode .drag-handle { display: block; }
+
+  /* Edit mode indicator */
+  .edit-indicator {
+    display: none;
+    position: fixed;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(201,169,110,0.15);
+    border: 1px solid rgba(201,169,110,0.3);
+    border-radius: 30px;
+    padding: 5px 16px;
+    font-size: 11px;
+    color: var(--accent1);
+    font-family: 'Cairo', sans-serif;
+    z-index: 200;
+    letter-spacing: 1px;
+  }
+  body.edit-mode .edit-indicator { display: block; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 300;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--card);
+    border: 1px solid var(--edit-border);
+    border-radius: 18px;
+    padding: 28px;
+    width: 90%;
+    max-width: 420px;
+    animation: fadeUp 0.3s ease both;
+  }
+
+  .modal h3 { font-family: 'Amiri', serif; color: var(--accent1); margin-bottom: 20px; font-size: 18px; }
+
+  .modal-field { margin-bottom: 14px; }
+  .modal-field label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 6px; letter-spacing: 1px; }
+  .modal-field input, .modal-field select {
+    width: 100%;
+    background: var(--edit-bg);
+    border: 1px solid rgba(201,169,110,0.2);
+    border-radius: 8px;
+    padding: 9px 12px;
+    color: var(--text);
+    font-family: 'Cairo', sans-serif;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .modal-field input:focus, .modal-field select:focus { border-color: var(--accent1); }
+  .modal-field select { cursor: pointer; }
+
+  .modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+  .btn-confirm { background: rgba(201,169,110,0.15); border: 1px solid rgba(201,169,110,0.3); color: var(--accent1); font-family: 'Cairo', sans-serif; font-size: 13px; padding: 8px 20px; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+  .btn-confirm:hover { background: rgba(201,169,110,0.25); }
+  .btn-cancel { background: transparent; border: 1px solid rgba(255,255,255,0.1); color: var(--muted); font-family: 'Cairo', sans-serif; font-size: 13px; padding: 8px 20px; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+  .btn-cancel:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+
+  /* ======= STATUS BUTTON ======= */
+  .status-btn {
+    flex-shrink: 0;
+    border: none;
+    background: transparent;
+    font-size: 18px;
+    cursor: pointer;
+    transition: transform 0.15s;
+    line-height: 1;
+    padding: 0 2px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .status-btn:hover { transform: scale(1.25); }
+
+  /* فاضي */
+  .status-btn[data-status="empty"] { opacity: 0.25; }
+
+  /* صح */
+  .status-btn[data-status="done"] { opacity: 1; }
+
+  /* غلط */
+  .status-btn[data-status="wrong"] { opacity: 1; }
+
+  /* Row done → خلفية ذهبية خفيفة */
+  .row[data-status="done"] {
+    background: rgba(201,169,110,0.08) !important;
+    border-right: 2px solid rgba(201,169,110,0.5);
+  }
+  .row[data-status="done"] .activity { color: var(--accent1); }
+
+  /* Row wrong → خلفية حمرا خفيفة */
+  .row[data-status="wrong"] {
+    background: rgba(220,80,80,0.06) !important;
+    border-right: 2px solid rgba(220,80,80,0.35);
+  }
+  .row[data-status="wrong"] .activity { color: rgba(230,100,100,0.9); }
+
+  /* Progress bar per section */
+  .section-progress {
+    height: 2px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.05);
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  .section-progress-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--accent1), #7dcca4);
+    transition: width 0.4s ease;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: rgba(100,200,150,0.15);
+    border: 1px solid rgba(100,200,150,0.3);
+    color: #7dcca4;
+    border-radius: 30px;
+    padding: 8px 20px;
+    font-size: 12px;
+    font-family: 'Cairo', sans-serif;
+    z-index: 500;
+    opacity: 0;
+    transition: all 0.3s;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+<div class="edit-indicator">✏️ وضع التعديل</div>
+
+<!-- Edit Toggle Bar -->
+<div class="edit-toggle-bar">
+  <button class="toggle-btn" id="viewBtn" onclick="setMode('view')">👁️ عرض</button>
+  <button class="toggle-btn active" id="editBtn" onclick="setMode('edit')">✏️ تعديل</button>
+  <button class="toggle-btn save-btn" onclick="saveSchedule()">💾 حفظ</button>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Add Row Modal -->
+<div class="modal-overlay" id="addRowModal">
+  <div class="modal">
+    <h3>إضافة نشاط جديد</h3>
+    <div class="modal-field">
+      <label>الوقت</label>
+      <input type="text" id="newTime" placeholder="مثال: 9:00" dir="ltr">
+    </div>
+    <div class="modal-field">
+      <label>النشاط</label>
+      <input type="text" id="newActivity" placeholder="مثال: صلاة الفجر + أذكار 🤲">
+    </div>
+    <div class="modal-field">
+      <label>التاج (اختياري)</label>
+      <select id="newTag">
+        <option value="">بدون تاج</option>
+        <option value="gold">ذهبي</option>
+        <option value="blue">أزرق</option>
+        <option value="purple">بنفسجي</option>
+        <option value="green">أخضر</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label>نص التاج</label>
+      <input type="text" id="newTagText" placeholder="مثال: روحي">
+    </div>
+    <div class="modal-field">
+      <label>
+        <input type="checkbox" id="newHighlight" style="margin-left:6px">
+        تمييز (لون أزرق)
+      </label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('addRowModal')">إلغاء</button>
+      <button class="btn-confirm" onclick="confirmAddRow()">إضافة</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Section Modal -->
+<div class="modal-overlay" id="addSectionModal">
+  <div class="modal">
+    <h3>إضافة قسم جديد</h3>
+    <div class="modal-field">
+      <label>الإيموجي</label>
+      <input type="text" id="newSectionIcon" placeholder="مثال: 🌙" style="font-size:20px">
+    </div>
+    <div class="modal-field">
+      <label>اسم القسم</label>
+      <input type="text" id="newSectionTitle" placeholder="مثال: ما قبل الفجر">
+    </div>
+    <div class="modal-field">
+      <label>التوقيت</label>
+      <input type="text" id="newSectionSub" placeholder="مثال: 3:30 — 6:30 ص" dir="ltr">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('addSectionModal')">إلغاء</button>
+      <button class="btn-confirm" onclick="confirmAddSection()">إضافة</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Day Modal -->
+<div class="modal-overlay" id="addDayModal">
+  <div class="modal">
+    <h3>إضافة يوم جديد</h3>
+    <div class="modal-field">
+      <label>اسم اليوم</label>
+      <input type="text" id="newDayName" placeholder="مثال: الأحد">
+    </div>
+    <div class="modal-field">
+      <label>
+        <input type="checkbox" id="newDayHoliday" style="margin-left:6px">
+        إجازة ✨
+      </label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('addDayModal')">إلغاء</button>
+      <button class="btn-confirm" onclick="confirmAddDay()">إضافة</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Day Item Modal -->
+<div class="modal-overlay" id="addItemModal">
+  <div class="modal">
+    <h3>إضافة بند في اليوم</h3>
+    <div class="modal-field">
+      <label>النص</label>
+      <input type="text" id="newItemText" placeholder="مثال: رسم 🎨 (ساعتين)">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('addItemModal')">إلغاء</button>
+      <button class="btn-confirm" onclick="confirmAddItem()">إضافة</button>
+    </div>
+  </div>
+</div>
+
+<div class="container" id="mainContainer">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-label">
+      <span class="editable" contenteditable="false" id="headerLabel">الجدول اليومي</span>
+    </div>
+    <h1>
+      <span class="editable" contenteditable="false" id="headerPrefix">يوم </span><span class="editable" contenteditable="false" id="headerName" style="color:var(--accent1)">نيرو</span> 🌙
+    </h1>
+    <div class="header-line"></div>
+  </div>
+
+  <!-- SECTIONS CONTAINER -->
+  <div id="sectionsContainer">
+
+    <!-- Section 1 -->
+    <div class="section" data-section="0">
+      <div class="section-header">
+        <div class="section-icon editable" contenteditable="false">🌙</div>
+        <div>
+          <div class="section-title editable" contenteditable="false">ما قبل الفجر</div>
+          <div class="section-sub editable" contenteditable="false">3:30 — 6:30 ص</div>
+        </div>
+        <div class="divider"></div>
+        <button class="delete-btn" onclick="deleteSection(this)" title="حذف القسم">×</button>
+      </div>
+      <div class="card">
+        <div class="row">
+          <span class="time editable" contenteditable="false">3:30</span>
+          <div class="dot"></div>
+          <span class="activity editable" contenteditable="false">قيام الليل 🤲</span>
+          <button class="highlight-toggle" onclick="toggleHighlight(this)" title="تمييز">H</button>
+          <span class="tag tag-gold">روحي</span>
+          <select class="tag-select" onchange="updateTagFromSelect(this)">
+            <option value="">بدون</option>
+            <option value="gold" selected>ذهبي: روحي</option>
+            <option value="blue">أزرق</option>
+            <option value="purple">بنفسجي</option>
+            <option value="green">أخضر</option>
+          </select>
+          <input class="editable" contenteditable="false" style="display:none" class="tag-text-input">
+          <button class="delete-btn" onclick="deleteRow(this)" title="حذف">×</button>
+        </div>
+        <div class="row">
+          <span class="time editable" contenteditable="false">4:15</span>
+          <div class="dot"></div>
+          <span class="activity editable" contenteditable="false">صلاة الفجر + أذكار + قرآن</span>
+          <button class="highlight-toggle" onclick="toggleHighlight(this)">H</button>
+          <span class="tag tag-gold">روحي</span>
+          <select class="tag-select" onchange="updateTagFromSelect(this)">
+            <option value="">بدون</option>
+            <option value="gold" selected>ذهبي: روحي</option>
+            <option value="blue">أزرق</option>
+            <option value="purple">بنفسجي</option>
+            <option value="green">أخضر</option>
+          </select>
+          <button class="delete-btn" onclick="deleteRow(this)">×</button>
+        </div>
+        <div class="row">
+          <span class="time editable" contenteditable="false">5:00</span>
+          <div class="dot"></div>
+          <span class="activity highlight editable" contenteditable="false">رياضة البطن 💪</span>
+          <button class="highlight-toggle" onclick="toggleHighlight(this)" style="background:rgba(123,156,205,0.2)">H</button>
+          <span class="tag tag-green">15-20 دقيقة</span>
+          <select class="tag-select" onchange="updateTagFromSelect(this)">
+            <option value="">بدون</option>
+            <option value="gold">ذهبي</option>
+            <option value="blue">أزرق</option>
+            <option value="purple">بنفسجي</option>
+            <option value="green" selected>أخضر: 15-20 دقيقة</option>
+          </select>
+          <button class="delete-btn" onclick="deleteRow(this)">×</button>
+        </div>
+        <div class="row">
+          <span class="time editable" contenteditable="false">5:20</span>
+          <div class="dot"></div>
+          <span class="activity highlight editable" contenteditable="false">شغل Front-End / JS 👩‍💻</span>
+          <button class="highlight-toggle" onclick="toggleHighlight(this)" style="background:rgba(123,156,205,0.2)">H</button>
+          <span class="tag tag-blue">بلوك ١</span>
+          <select class="tag-select" onchange="updateTagFromSelect(this)">
+            <option value="">بدون</option>
+            <option value="gold">ذهبي</option>
+            <option value="blue" selected>أزرق: بلوك ١</option>
+            <option value="purple">بنفسجي</option>
+            <option value="green">أخضر</option>
+          </select>
+          <button class="delete-btn" onclick="deleteRow(this)">×</button>
+        </div>
+        <div class="row">
+          <span class="time editable" contenteditable="false">6:30</span>
+          <div class="dot"></div>
+          <span class="activity editable" contenteditable="false">نوم 😴</span>
+          <button class="highlight-toggle" onclick="toggleHighlight(this)">H</button>
+          <span class="tag tag-purple">راحة</span>
+          <select class="tag-select" onchange="updateTagFromSelect(this)">
+            <option value="">بدون</option>
+            <option value="gold">ذهبي</option>
+            <option value="blue">أزرق</option>
+            <option value="purple" selected>بنفسجي: راحة</option>
+            <option value="green">أخضر</option>
+          </select>
+          <button class="delete-btn" onclick="deleteRow(this)">×</button>
+        </div>
+      </div>
+      <button class="add-row-btn" onclick="openAddRowModal(this)">+ إضافة نشاط</button>
+    </div>
+
+    <!-- Section 2 -->
+    <div class="section" data-section="1">
+      <div class="section-header">
+        <div class="section-icon editable" contenteditable="false">☀️</div>
+        <div>
+          <div class="section-title editable" contenteditable="false">الضحى</div>
+          <div class="section-sub editable" contenteditable="false">9:30 — 12:00 ص</div>
+        </div>
+        <div class="divider"></div>
+        <button class="delete-btn" onclick="deleteSection(this)">×</button>
+      </div>
+      <div class="card">
+        <div class="row">
+          <span class="time editable" contenteditable="false">9:30</span>
+          <div class="dot"></div>
+          <span class="activity editable" contenteditable="false">صحيان + فطار ☕</span>
+          <button class="highlight-toggle" onclick="toggleHighlight(this)">H</button>
+          <select class="tag-select" onchange="updateTagFromSelect(this)">
+            <option value="" selected>بدون</option>
+            <option value="gold">ذهبي</option>
+            <option value="blue">أزرق</option>
+            <option value="purple">بنفسجي</option>
+            <option value="green">أخضر</option>
+          </select>
+          <button class="delete-btn" onclick="deleteRow(this)">×</button>
+        </div>
+        <div class="row">
+          <span class="time editable" contenteditable="false">10:00</span>
+          <div class="dot"></div>
+          <span class="activity highlight editable" contenteditable="false">إنجليزي 📚</span>
+          <button class="highlight-toggle" onclick="toggleHighlight(this)" style="background:rgba(123,156,205,0.2)">H</button>
+          <span class="tag tag-blue">ساعة</span>
+          <select class="tag-select" onchange="updateTagFromSelect(this)">
+            <option value="">بدون</option>
+            <option value="gold">ذهبي</option>
+            <option value="blue" selected>أزرق: ساعة</option>
+            <option value="purple">بنفسجي</option>
+            <option value="green">أخضر</option>
+          </select>
+          <button class="delete-btn" onclick="deleteRow(this)">×</button>
+        </div>
+        <div class="row">
+          <span class="time editable" contenteditable="false">11:00</span>
+          <div class="dot"></div>
+          <span class="activity editable" contenteditable="false">شغل بيت + غداء 🍽️</span>
+          <button class="highlight-toggle" onclick="toggleHighlight(this)">H</button>
+          <select class="tag-select" onchange="updateTagFromSelect(this)">
+            <option value="" selected>بدون</option>
+            <option value="gold">ذهبي</option>
+            <option value="blue">أزرق</option>
+            <option value="purple">بنفسجي</option>
+            <option value="green">أخضر</option>
+          </select>
+          <button class="delete-btn" onclick="deleteRow(this)">×</button>
+        </div>
+      </div>
+      <button class="add-row-btn" onclick="openAddRowModal(this)">+ إضافة نشاط</button>
+    </div>
+
+    <!-- Section 3 -->
+    <div class="section" data-section="2">
+      <div class="section-header">
+        <div class="section-icon editable" contenteditable="false">🌤️</div>
+        <div>
+          <div class="section-title editable" contenteditable="false">العصر — المغرب</div>
+          <div class="section-sub editable" contenteditable="false">3:30 — 7:00 م</div>
+        </div>
+        <div class="divider"></div>
+        <button class="delete-btn" onclick="deleteSection(this)">×</button>
+      </div>
+      <div class="card">
+        <div class="row">
+          <span class="time editable" contenteditable="false">3:30</span>
+          <div class="dot"></div>
+          <span class="activity editable" contenteditable="false">صلاة العصر 🤲</span>
+          <button class="highlight-toggle" onclick="toggleHighlight(this)">H</button>
+          <span class="tag tag-gold">روحي</span>
+          <select class="tag-select" onchange="updateTagFromSelect(this)">
+            <option value="">بدون</option>
+            <option value="gold" selected>ذهبي: روحي</option>
+            <option value="blue">أزرق</option>
+            <option value="purple">بنفسجي</option>
+            <option value="green">أخضر</option>
+          </select>
+          <button class="delete-btn" onclick="deleteRow(this)">×</button>
+        </div>
+        <div class="row">
+          <span class="time editable" contenteditable="false">4:00</span>
+          <div class="dot"></div>
+          <span class="activity highlight editable" contenteditable="false">شغل Front-End / JS 👩‍💻</span>
+          <button class="highlight-toggle" onclick="toggleHighlight(this)" style="background:rgba(123,156,205,0.2)">H</button>
+          <span class="tag tag-blue">بلوك ٢</span>
+          <select class="tag-select" onchange="updateTagFromSelect(this)">
+            <option value="">بدون</option>
+            <option value="gold">ذهبي</option>
+            <option value="blue" selected>أزرق: بلوك ٢</option>
+            <option value="purple">بنفسجي</option>
+            <option value="green">أخضر</option>
+          </select>
+          <button class="delete-btn" onclick="deleteRow(this)">×</button>
+        </div>
+        <div class="row">
+          <span class="time editable" contenteditable="false">6:00</span>
+          <div class="dot"></div>
+          <span class="activity editable" contenteditable="false">صلاة المغرب + أذكار 🌅</span>
+          <button class="highlight-toggle" onclick="toggleHighlight(this)">H</button>
+          <span class="tag tag-gold">روحي</span>
+          <select class="tag-select" onchange="updateTagFromSelect(this)">
+            <option value="">بدون</option>
+            <option value="gold" selected>ذهبي: روحي</option>
+            <option value="blue">أزرق</option>
+            <option value="purple">بنفسجي</option>
+            <option value="green">أخضر</option>
+          </select>
+          <button class="delete-btn" onclick="deleteRow(this)">×</button>
+        </div>
+        <div class="row">
+          <span class="time editable" contenteditable="false">6:30</span>
+          <div class="dot"></div>
+          <span class="activity editable" contenteditable="false">وقت فراغ — أفلام / تفرجي 🎬</span>
+          <button class="highlight-toggle" onclick="toggleHighlight(this)">H</button>
+          <span class="tag tag-purple">لنفسك</span>
+          <select class="tag-select" onchange="updateTagFromSelect(this)">
+            <option value="">بدون</option>
+            <option value="gold">ذهبي</option>
+            <option value="blue">أزرق</option>
+            <option value="purple" selected>بنفسجي: لنفسك</option>
+            <option value="green">أخضر</option>
+          </select>
+          <button class="delete-btn" onclick="deleteRow(this)">×</button>
+        </div>
+      </div>
+      <button class="add-row-btn" onclick="openAddRowModal(this)">+ إضافة نشاط</button>
+    </div>
+
+    <!-- Section 4 -->
+    <div class="section" data-section="3">
+      <div class="section-header">
+        <div class="section-icon editable" contenteditable="false">🌃</div>
+        <div>
+          <div class="section-title editable" contenteditable="false">العشاء — النوم</div>
+          <div class="section-sub editable" contenteditable="false">8:00 — 10:00 م</div>
+        </div>
+        <div class="divider"></div>
+        <button class="delete-btn" onclick="deleteSection(this)">×</button>
+      </div>
+      <div class="card">
+        <div class="row">
+          <span class="time editable" contenteditable="false">8:00</span>
+          <div class="dot"></div>
+          <span class="activity editable" contenteditable="false">صلاة العشاء 🤲</span>
+          <button class="highlight-toggle" onclick="toggleHighlight(this)">H</button>
+          <span class="tag tag-gold">روحي</span>
+          <select class="tag-select" onchange="updateTagFromSelect(this)">
+            <option value="">بدون</option>
+            <option value="gold" selected>ذهبي: روحي</option>
+            <option value="blue">أزرق</option>
+            <option value="purple">بنفسجي</option>
+            <option value="green">أخضر</option>
+          </select>
+          <button class="delete-btn" onclick="deleteRow(this)">×</button>
+        </div>
+        <div class="row">
+          <span class="time editable" contenteditable="false">8:30</span>
+          <div class="dot"></div>
+          <span class="activity editable" contenteditable="false">قراءة / وقت هادي 📖</span>
+          <button class="highlight-toggle" onclick="toggleHighlight(this)">H</button>
+          <span class="tag tag-purple">لنفسك</span>
+          <select class="tag-select" onchange="updateTagFromSelect(this)">
+            <option value="">بدون</option>
+            <option value="gold">ذهبي</option>
+            <option value="blue">أزرق</option>
+            <option value="purple" selected>بنفسجي: لنفسك</option>
+            <option value="green">أخضر</option>
+          </select>
+          <button class="delete-btn" onclick="deleteRow(this)">×</button>
+        </div>
+        <div class="row">
+          <span class="time editable" contenteditable="false">10:00</span>
+          <div class="dot"></div>
+          <span class="activity editable" contenteditable="false">نوم 🌙</span>
+          <button class="highlight-toggle" onclick="toggleHighlight(this)">H</button>
+          <select class="tag-select" onchange="updateTagFromSelect(this)">
+            <option value="" selected>بدون</option>
+            <option value="gold">ذهبي</option>
+            <option value="blue">أزرق</option>
+            <option value="purple">بنفسجي</option>
+            <option value="green">أخضر</option>
+          </select>
+          <button class="delete-btn" onclick="deleteRow(this)">×</button>
+        </div>
+      </div>
+      <button class="add-row-btn" onclick="openAddRowModal(this)">+ إضافة نشاط</button>
+    </div>
+
+  </div><!-- end sectionsContainer -->
+
+  <button class="add-section-btn" id="addSectionBtn" onclick="openModal('addSectionModal')">+ إضافة قسم جديد</button>
+
+  <!-- Weekly Section -->
+  <div class="section" id="weeklySection">
+    <div class="section-header">
+      <div class="section-icon">📅</div>
+      <div>
+        <div class="section-title">الأسبوعي</div>
+        <div class="section-sub editable" contenteditable="false">إضافات على الجدول اليومي</div>
+      </div>
+      <div class="divider"></div>
+    </div>
+    <div class="week-grid" id="weekGrid">
+      <div class="day-card" data-holiday="false">
+        <button class="holiday-toggle" onclick="toggleHoliday(this)">✨ إجازة</button>
+        <div class="day-name editable" contenteditable="false">الأحد</div>
+        <ul class="day-items">
+          <li><span class="editable" contenteditable="false">رسم 🎨 (ساعتين)</span><button class="delete-btn" onclick="deleteDayItem(this)">×</button></li>
+          <li><span class="editable" contenteditable="false">جدول عادي</span><button class="delete-btn" onclick="deleteDayItem(this)">×</button></li>
+        </ul>
+        <button class="add-item-btn" onclick="openAddItemModal(this)">+ بند</button>
+        <button class="delete-btn" style="margin-top:8px;width:100%;border-radius:8px" onclick="deleteDayCard(this)">× حذف اليوم</button>
+      </div>
+      <div class="day-card" data-holiday="false">
+        <button class="holiday-toggle" onclick="toggleHoliday(this)">✨ إجازة</button>
+        <div class="day-name editable" contenteditable="false">الاثنين</div>
+        <ul class="day-items">
+          <li><span class="editable" contenteditable="false">إنجليزي ساعتين</span><button class="delete-btn" onclick="deleteDayItem(this)">×</button></li>
+          <li><span class="editable" contenteditable="false">جدول عادي</span><button class="delete-btn" onclick="deleteDayItem(this)">×</button></li>
+        </ul>
+        <button class="add-item-btn" onclick="openAddItemModal(this)">+ بند</button>
+        <button class="delete-btn" style="margin-top:8px;width:100%;border-radius:8px" onclick="deleteDayCard(this)">× حذف اليوم</button>
+      </div>
+      <div class="day-card" data-holiday="false">
+        <button class="holiday-toggle" onclick="toggleHoliday(this)">✨ إجازة</button>
+        <div class="day-name editable" contenteditable="false">الثلاثاء</div>
+        <ul class="day-items">
+          <li><span class="editable" contenteditable="false">فقه ديني ساعة 📿</span><button class="delete-btn" onclick="deleteDayItem(this)">×</button></li>
+          <li><span class="editable" contenteditable="false">جدول عادي</span><button class="delete-btn" onclick="deleteDayItem(this)">×</button></li>
+        </ul>
+        <button class="add-item-btn" onclick="openAddItemModal(this)">+ بند</button>
+        <button class="delete-btn" style="margin-top:8px;width:100%;border-radius:8px" onclick="deleteDayCard(this)">× حذف اليوم</button>
+      </div>
+      <div class="day-card" data-holiday="false">
+        <button class="holiday-toggle" onclick="toggleHoliday(this)">✨ إجازة</button>
+        <div class="day-name editable" contenteditable="false">الأربعاء</div>
+        <ul class="day-items">
+          <li><span class="editable" contenteditable="false">إنجليزي ساعتين</span><button class="delete-btn" onclick="deleteDayItem(this)">×</button></li>
+          <li><span class="editable" contenteditable="false">جدول عادي</span><button class="delete-btn" onclick="deleteDayItem(this)">×</button></li>
+        </ul>
+        <button class="add-item-btn" onclick="openAddItemModal(this)">+ بند</button>
+        <button class="delete-btn" style="margin-top:8px;width:100%;border-radius:8px" onclick="deleteDayCard(this)">× حذف اليوم</button>
+      </div>
+      <div class="day-card" data-holiday="false">
+        <button class="holiday-toggle" onclick="toggleHoliday(this)">✨ إجازة</button>
+        <div class="day-name editable" contenteditable="false">الخميس</div>
+        <ul class="day-items">
+          <li><span class="editable" contenteditable="false">فقه ديني ساعة 📿</span><button class="delete-btn" onclick="deleteDayItem(this)">×</button></li>
+          <li><span class="editable" contenteditable="false">جدول عادي</span><button class="delete-btn" onclick="deleteDayItem(this)">×</button></li>
+        </ul>
+        <button class="add-item-btn" onclick="openAddItemModal(this)">+ بند</button>
+        <button class="delete-btn" style="margin-top:8px;width:100%;border-radius:8px" onclick="deleteDayCard(this)">× حذف اليوم</button>
+      </div>
+      <div class="day-card" data-holiday="false">
+        <button class="holiday-toggle" onclick="toggleHoliday(this)">✨ إجازة</button>
+        <div class="day-name editable" contenteditable="false">الجمعة</div>
+        <ul class="day-items">
+          <li><span class="editable" contenteditable="false">سيشن 4 — 7:30 م 🖥️</span><button class="delete-btn" onclick="deleteDayItem(this)">×</button></li>
+          <li><span class="editable" contenteditable="false">جدول عادي</span><button class="delete-btn" onclick="deleteDayItem(this)">×</button></li>
+        </ul>
+        <button class="add-item-btn" onclick="openAddItemModal(this)">+ بند</button>
+        <button class="delete-btn" style="margin-top:8px;width:100%;border-radius:8px" onclick="deleteDayCard(this)">× حذف اليوم</button>
+      </div>
+      <div class="day-card holiday" data-holiday="true">
+        <button class="holiday-toggle" onclick="toggleHoliday(this)">🔄 عادي</button>
+        <div class="day-name editable" contenteditable="false">السبت ✨</div>
+        <ul class="day-items">
+          <li><span class="editable" contenteditable="false">إجازة كاملة 🎉</span><button class="delete-btn" onclick="deleteDayItem(this)">×</button></li>
+          <li><span class="editable" contenteditable="false">أفلام / خروج / رسم</span><button class="delete-btn" onclick="deleteDayItem(this)">×</button></li>
+          <li><span class="editable" contenteditable="false">اللي مزاجك يجيب 🌸</span><button class="delete-btn" onclick="deleteDayItem(this)">×</button></li>
+        </ul>
+        <button class="add-item-btn" onclick="openAddItemModal(this)">+ بند</button>
+        <button class="delete-btn" style="margin-top:8px;width:100%;border-radius:8px" onclick="deleteDayCard(this)">× حذف اليوم</button>
+      </div>
+    </div>
+    <button class="add-day-btn" id="addDayBtn" onclick="openModal('addDayModal')">+ إضافة يوم</button>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>يومك مبني على <span>النور</span> — كل خطوة بحسابها يا <span class="editable" contenteditable="false" id="footerName">نيرو</span> 🌙</p>
+  </div>
+
+</div><!-- end container -->
+
+<script>
+// ===== STARS =====
+const starsEl = document.getElementById('stars');
+for (let i = 0; i < 60; i++) {
+  const s = document.createElement('div');
+  s.className = 'star';
+  s.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${3+Math.random()*4}s;--delay:${Math.random()*5}s;--op:${0.2+Math.random()*0.4};`;
+  starsEl.appendChild(s);
+}
+
+// ===== MODE =====
+let isEditMode = true;
+window.addEventListener('DOMContentLoaded', () => {
+  initStatusButtons();
+  setMode('edit');
+});
+
+function setMode(mode) {
+  isEditMode = mode === 'edit';
+  document.body.classList.toggle('edit-mode', isEditMode);
+  document.getElementById('editBtn').classList.toggle('active', isEditMode);
+  document.getElementById('viewBtn').classList.toggle('active', !isEditMode);
+
+  // Toggle contenteditable on all editable elements
+  document.querySelectorAll('.editable').forEach(el => {
+    el.contentEditable = isEditMode ? 'true' : 'false';
+  });
+}
+
+// ===== MODALS =====
+let activeAddRowBtn = null;
+let activeAddItemBtn = null;
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function openAddRowModal(btn) {
+  activeAddRowBtn = btn;
+  document.getElementById('newTime').value = '';
+  document.getElementById('newActivity').value = '';
+  document.getElementById('newTag').value = '';
+  document.getElementById('newTagText').value = '';
+  document.getElementById('newHighlight').checked = false;
+  openModal('addRowModal');
+}
+
+function openAddItemModal(btn) {
+  activeAddItemBtn = btn;
+  document.getElementById('newItemText').value = '';
+  openModal('addItemModal');
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => { if(e.target === overlay) overlay.classList.remove('open'); });
+});
+
+// ===== CONFIRM ADD ROW =====
+function confirmAddRow() {
+  const time = document.getElementById('newTime').value.trim();
+  const activity = document.getElementById('newActivity').value.trim();
+  const tagColor = document.getElementById('newTag').value;
+  const tagText = document.getElementById('newTagText').value.trim();
+  const highlight = document.getElementById('newHighlight').checked;
+
+  if (!activity) return;
+
+  const card = activeAddRowBtn.previousElementSibling;
+  const row = createRow(time, activity, tagColor, tagText, highlight);
+  card.appendChild(row);
+  closeModal('addRowModal');
+  showToast('تمت الإضافة ✓');
+}
+
+function createRow(time, activity, tagColor, tagText, highlight) {
+  const row = document.createElement('div');
+  row.className = 'row';
+  row.dataset.status = 'empty';
+
+  const tagColorMap = { gold: 'tag-gold', blue: 'tag-blue', purple: 'tag-purple', green: 'tag-green' };
+  const tagClass = tagColor ? tagColorMap[tagColor] : '';
+  const tagLabel = tagText || (tagColor === 'gold' ? 'روحي' : tagColor === 'blue' ? 'مميز' : tagColor === 'purple' ? 'راحة' : 'نشاط');
+
+  let selectedOpts = '';
+  ['', 'gold', 'blue', 'purple', 'green'].forEach(v => {
+    const label = v === '' ? 'بدون' : v === 'gold' ? `ذهبي: ${tagLabel}` : v === 'blue' ? `أزرق: ${tagLabel}` : v === 'purple' ? `بنفسجي: ${tagLabel}` : `أخضر: ${tagLabel}`;
+    selectedOpts += `<option value="${v}" ${v === tagColor ? 'selected' : ''}>${label}</option>`;
+  });
+
+  row.innerHTML = `
+    <span class="time editable" contenteditable="true">${time || ''}</span>
+    <div class="dot"></div>
+    <span class="activity ${highlight ? 'highlight' : ''} editable" contenteditable="true">${activity}</span>
+    <button class="highlight-toggle" onclick="toggleHighlight(this)" ${highlight ? 'style="background:rgba(123,156,205,0.2)"' : ''}>H</button>
+    ${tagColor ? `<span class="tag ${tagClass}">${tagText || tagLabel}</span>` : ''}
+    <select class="tag-select" onchange="updateTagFromSelect(this)">${selectedOpts}</select>
+    <button class="status-btn" data-status="empty" onclick="cycleStatus(this)">⬜</button>
+    <button class="delete-btn" onclick="deleteRow(this)">×</button>
+  `;
+  return row;
+}
+
+// ===== STATUS CYCLE =====
+const STATUS_CYCLE = ['empty', 'done', 'wrong'];
+const STATUS_LABELS = { empty: '⬜', done: '✅', wrong: '❌' };
+
+function cycleStatus(btn) {
+  const row = btn.closest('.row');
+  const cur = btn.dataset.status;
+  const next = STATUS_CYCLE[(STATUS_CYCLE.indexOf(cur) + 1) % STATUS_CYCLE.length];
+  btn.dataset.status = next;
+  btn.textContent = STATUS_LABELS[next];
+  row.dataset.status = next;
+  updateSectionProgress(row.closest('.section'));
+}
+
+function updateSectionProgress(section) {
+  if (!section) return;
+  const rows = section.querySelectorAll('.row');
+  const done = section.querySelectorAll('.row[data-status="done"]').length;
+  const pct = rows.length ? Math.round((done / rows.length) * 100) : 0;
+  const fill = section.querySelector('.section-progress-fill');
+  if (fill) fill.style.width = pct + '%';
+}
+
+// Init status buttons on existing rows at page load
+function initStatusButtons() {
+  document.querySelectorAll('.row').forEach(row => {
+    if (!row.querySelector('.status-btn')) {
+      row.dataset.status = 'empty';
+      const statusBtn = document.createElement('button');
+      statusBtn.className = 'status-btn';
+      statusBtn.dataset.status = 'empty';
+      statusBtn.textContent = '⬜';
+      statusBtn.onclick = function() { cycleStatus(this); };
+      const deleteBtn = row.querySelector('.delete-btn');
+      if (deleteBtn) row.insertBefore(statusBtn, deleteBtn);
+      else row.appendChild(statusBtn);
+    }
+  });
+  // Add progress bars to sections
+  document.querySelectorAll('.section').forEach(section => {
+    if (!section.querySelector('.section-progress')) {
+      const pb = document.createElement('div');
+      pb.className = 'section-progress';
+      pb.innerHTML = '<div class="section-progress-fill" style="width:0%"></div>';
+      const card = section.querySelector('.card');
+      if (card) card.before(pb);
+    }
+  });
+}
+
+// ===== CONFIRM ADD SECTION =====
+function confirmAddSection() {
+  const icon = document.getElementById('newSectionIcon').value.trim() || '📌';
+  const title = document.getElementById('newSectionTitle').value.trim();
+  const sub = document.getElementById('newSectionSub').value.trim();
+  if (!title) return;
+
+  const section = document.createElement('div');
+  section.className = 'section';
+  section.innerHTML = `
+    <div class="section-header">
+      <div class="section-icon editable" contenteditable="${isEditMode}">${icon}</div>
+      <div>
+        <div class="section-title editable" contenteditable="${isEditMode}">${title}</div>
+        <div class="section-sub editable" contenteditable="${isEditMode}">${sub}</div>
+      </div>
+      <div class="divider"></div>
+      <button class="delete-btn" onclick="deleteSection(this)">×</button>
+    </div>
+    <div class="section-progress"><div class="section-progress-fill" style="width:0%"></div></div>
+    <div class="card"></div>
+    <button class="add-row-btn" ${isEditMode ? 'style="display:flex"' : ''} onclick="openAddRowModal(this)">+ إضافة نشاط</button>
+  `;
+  document.getElementById('sectionsContainer').appendChild(section);
+  closeModal('addSectionModal');
+  showToast('تمت إضافة القسم ✓');
+}
+
+// ===== CONFIRM ADD DAY =====
+function confirmAddDay() {
+  const name = document.getElementById('newDayName').value.trim();
+  const isHoliday = document.getElementById('newDayHoliday').checked;
+  if (!name) return;
+
+  const card = document.createElement('div');
+  card.className = `day-card${isHoliday ? ' holiday' : ''}`;
+  card.dataset.holiday = isHoliday;
+  card.innerHTML = `
+    <button class="holiday-toggle" onclick="toggleHoliday(this)">${isHoliday ? '🔄 عادي' : '✨ إجازة'}</button>
+    <div class="day-name editable" contenteditable="${isEditMode}">${name}</div>
+    <ul class="day-items"></ul>
+    <button class="add-item-btn" ${isEditMode ? 'style="display:flex"' : ''} onclick="openAddItemModal(this)">+ بند</button>
+    <button class="delete-btn" style="margin-top:8px;width:100%;border-radius:8px;${isEditMode ? 'display:flex' : ''}" onclick="deleteDayCard(this)">× حذف اليوم</button>
+  `;
+  document.getElementById('weekGrid').appendChild(card);
+  closeModal('addDayModal');
+  showToast('تمت إضافة اليوم ✓');
+}
+
+// ===== CONFIRM ADD ITEM =====
+function confirmAddItem() {
+  const text = document.getElementById('newItemText').value.trim();
+  if (!text) return;
+
+  const ul = activeAddItemBtn.previousElementSibling;
+  const li = document.createElement('li');
+  li.innerHTML = `<span class="editable" contenteditable="${isEditMode}">${text}</span><button class="delete-btn" onclick="deleteDayItem(this)">×</button>`;
+  ul.appendChild(li);
+  closeModal('addItemModal');
+  showToast('تمت الإضافة ✓');
+}
+
+// ===== DELETE FUNCTIONS =====
+function deleteRow(btn) {
+  const section = btn.closest('.section');
+  btn.closest('.row').remove();
+  updateSectionProgress(section);
+}
+function deleteSection(btn) { btn.closest('.section').remove(); }
+function deleteDayCard(btn) { btn.closest('.day-card').remove(); }
+function deleteDayItem(btn) { btn.closest('li').remove(); }
+
+// ===== HIGHLIGHT TOGGLE =====
+function toggleHighlight(btn) {
+  const activity = btn.previousElementSibling;
+  if (activity.classList.contains('highlight')) {
+    activity.classList.remove('highlight');
+    btn.style.background = '';
+  } else {
+    activity.classList.add('highlight');
+    btn.style.background = 'rgba(123,156,205,0.2)';
+  }
+}
+
+// ===== TAG FROM SELECT =====
+function updateTagFromSelect(sel) {
+  const row = sel.closest('.row');
+  const existingTag = row.querySelector('.tag');
+  const color = sel.value;
+  const colorMap = { gold: 'tag-gold', blue: 'tag-blue', purple: 'tag-purple', green: 'tag-green' };
+  const defaultText = { gold: 'روحي', blue: 'مميز', purple: 'راحة', green: 'نشاط' };
+
+  if (existingTag) existingTag.remove();
+  if (color) {
+    const tag = document.createElement('span');
+    tag.className = `tag ${colorMap[color]}`;
+    // Extract text after colon if present
+    const optText = sel.options[sel.selectedIndex].text;
+    const parts = optText.split(': ');
+    tag.textContent = parts.length > 1 ? parts[1] : defaultText[color];
+    sel.before(tag);
+  }
+}
+
+// ===== HOLIDAY TOGGLE =====
+function toggleHoliday(btn) {
+  const card = btn.closest('.day-card');
+  const isHoliday = card.dataset.holiday === 'true';
+  card.dataset.holiday = !isHoliday;
+  card.classList.toggle('holiday', !isHoliday);
+  btn.textContent = !isHoliday ? '🔄 عادي' : '✨ إجازة';
+}
+
+// ===== SAVE =====
+function saveSchedule() {
+  // Temporarily switch to view mode for clean HTML
+  document.body.classList.remove('edit-mode');
+  document.querySelectorAll('.editable').forEach(el => el.contentEditable = 'false');
+
+  const html = '<!DOCTYPE html>\n<html>' + document.documentElement.innerHTML + '\n</html>';
+
+  document.body.classList.add('edit-mode');
+  document.querySelectorAll('.editable').forEach(el => el.contentEditable = 'true');
+
+  const blob = new Blob([html], { type: 'text/html' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'جدولي.html';
+  a.click();
+  showToast('تم الحفظ 💾');
+}
+
+// ===== TOAST =====
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
